@@ -1,0 +1,34 @@
+{
+  "name": "siphash24-stream",
+  "version": "0.0.0",
+  "description": "siphash24 mac signing and verification as streams",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chiefbiiko/siphash24-stream.git"
+  },
+  "keywords": [
+    "siphash24",
+    "mac",
+    "authentication",
+    "integrity",
+    "non-repudation",
+    "stream"
+  ],
+  "author": "Noah Anabiik Schwarz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chiefbiiko/siphash24-stream/issues"
+  },
+  "homepage": "https://github.com/chiefbiiko/siphash24-stream#readme",
+  "devDependencies": {
+    "tape": "^4.8.0"
+  },
+  "dependencies": {
+    "seed-bytes": "0.0.2",
+    "siphash24": "^1.1.0"
+  }
+}
