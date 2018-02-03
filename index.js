@@ -44,7 +44,7 @@ Verify._same = function (i, n, a, b) {
 }
 
 Verify.prototype._transform = function transform (chunk, _, next) {
-  if (chunk.length < x08) return this._drop(chunk, next)
+  if (chunk.length < x08) return this._drop(chunk, null, next)
 
   var mac = Buffer.alloc(x08)
   var msg = Buffer.alloc(chunk.length - x08)
@@ -65,7 +65,7 @@ Verify.prototype._transform = function transform (chunk, _, next) {
 }
 
 Verify.prototype._drop = function drop (chunk, key, next) {
-  if (!Buffer.isBuffer(key)) return this._drop(chunk, this._next(x10), key)
+  if (!Buffer.isBuffer(key)) return this._drop(chunk, this._next(x10), next)
   this._await = key
   this.emit('dropping', chunk)
   next()
