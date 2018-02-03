@@ -6,8 +6,8 @@ var sip = require('./index')
 tape('passes all true positives', function (t) {
 
   var shared = '419'
-  var a = sip.sign(shared)
-  var b = sip.verify(shared)
+  var a = sip.createSigningStream(shared)
+  var b = sip.createVerifyingStream(shared)
   var thru = passthru()
 
   var msgs = [ 'push', 'dirty money', 'overseas' ]
@@ -43,8 +43,8 @@ tape('drops true negatives', function (t) {
   ])
 
   var shared = '419'
-  var a = sip.sign(shared)
-  var b = sip.verify(shared)
+  var a = sip.createSigningStream(shared)
+  var b = sip.createVerifyingStream(shared)
   var thru = passthru()
 
   var msgs = [ 'push', 'dirty money', 'overseas' ]

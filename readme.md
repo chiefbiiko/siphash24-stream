@@ -30,8 +30,8 @@ var NSA = Buffer.concat([
 ])
 
 var shared = '419'
-var alice = sip.sign(shared) // alice signs
-var bob = sip.verify(shared) // bob verifies
+var alice = sip.createSigningStream(shared) // alice signs
+var bob = sip.createVerifyingStream(shared) // bob verifies
 var thru = passthru()
 
 function ondata (chunk) {
@@ -56,17 +56,19 @@ alice.end('and buy uzis')
 
 ## API
 
-### `var sign = sip.sign(init[, algo])`
+### `var sign = sip.createSigningStream(init[, algo])`
 
 Create a transform stream that signs all its throughput with a SipHash24 mac. `init` is the seed for a random byte generator used as key stream. `algo` indicates the algorithm to use for the internal random number generator, defaults to `'alea'`. Check out  [`seedrandom`](https://github.com/davidbau/seedrandom#other-fast-prng-algorithms) for a list of supported algorithms.
 
-### `var verify = sip.verify(init[, algo])`
+### `var verify = sip.createVerifyingStream(init[, algo])`
 
 Create a transform stream that verifies all its throughput against a SipHash24 mac. Bad chunks are rejected and not passed on, not pushed any further, but emitted with the `dropping` event.
 
 ### `verify.on('dropping', ondropping)`
 
 Emitted with every chunk that will not be pushed further. Use this if you wish to check dropouts. Calling back like `ondropping(chunk)`.
+
+***
 
 ## License
 

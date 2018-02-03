@@ -21,11 +21,7 @@ function Signify (init, algo) {
 inherits(Signify, Transform)
 
 Signify.prototype._transform = function transform (chunk, _, next) {
-  var key = this._next(x10) // 16 byte key
-  var mac = siphash24(chunk, key) // 8 byte mac
-  var pac = Buffer.concat([ mac, chunk ])
-
-  this.push(pac)
+  this.push(Buffer.concat([ siphash24(chunk, this._next(x10)), chunk ]))
   next()
 }
 
@@ -50,7 +46,7 @@ Verify._same = function (i, n, a, b) {
 Verify.prototype._transform = function transform (chunk, _, next) {
   if (chunk.length < x08) return this._drop(chunk, next)
 
-  var mac = Buffer.alloc(x08) // 8 byte mac
+  var mac = Buffer.alloc(x08)
   var msg = Buffer.alloc(chunk.length - x08)
 
   chunk.copy(mac, x00, x00, x08)
@@ -58,7 +54,7 @@ Verify.prototype._transform = function transform (chunk, _, next) {
 
   var waiting = !this._await.equals(ZBUF16) // awaiting a valid key?
 
-  var key = waiting ? this._await : this._next(x10) // 16 byte key
+  var key = waiting ? this._await : this._next(x10)
   var sip = siphash24(msg, key) // the truth
 
   if (!Verify._same(x00, x08, mac, sip)) return this._drop(chunk, key, next)
@@ -75,4 +71,7 @@ Verify.prototype._drop = function drop (chunk, key, next) {
   next()
 }
 
-module.exports = { sign: Signify, verify: Verify }
+module.exports = {
+  createSigningStream: Signify,
+  createVerifyingStream: Verify
+}

@@ -8,8 +8,8 @@ var NSA = Buffer.concat([
 ])
 
 var shared = '419'
-var alice = sip.sign(shared)
-var bob = sip.verify(shared)
+var alice = sip.createSigningStream(shared)
+var bob = sip.createVerifyingStream(shared)
 var thru = passthru()
 
 function ondata (chunk) {
