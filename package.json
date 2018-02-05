@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/chiefbiiko/siphash24-stream#readme",
   "devDependencies": {
+    "multipipe": "^2.0.1",
     "tape": "^4.8.0"
   },
   "dependencies": {

@@ -12,19 +12,22 @@ var alice = sip.createSigningStream(shared)
 var bob = sip.createVerifyingStream(shared)
 var thru = passthru()
 
-function ondata (chunk) {
-  console.log('ok:', chunk.toString())
+function ondata (name, chunk) {
+  console.log(name + ' ok:', chunk.toString())
 }
 
-function ondropping (chunk) {
-  console.log('dropping:', chunk.toString())
+function ondropping (name, chunk) {
+  console.log(name + ' dropping:', chunk.toString())
 }
 
 alice.pipe(thru).pipe(bob)
 
-bob.on('data', ondata)
-bob.on('dropping', ondropping)
+alice.on('data', ondata.bind(null, 'alice'))
+// alice.on('dropping', ondropping.bind(null, 'alice'))
+bob.on('data', ondata.bind(null, 'bob'))
+// bob.on('dropping', ondropping.bind(null, 'bob'))
 
 alice.write('push all dirty money overseas')
 thru.write(NSA)
-alice.end('and buy uzis')
+alice.write('and buy uzis')
+bob.write('ok cool')
