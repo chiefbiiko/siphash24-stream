@@ -1,7 +1,9 @@
 var Transform = require('stream').Transform
 var inherits = require('util').inherits
+var multipipe = require('multipipe')
 var siphash24 = require('siphash24')
 var seed = require('seed-bytes')
+var chop = require('./../chop-delimited-stream')
 
 var x00 = 0
 var x01 = 1
@@ -15,12 +17,10 @@ var ZBUF16 = Buffer.alloc(x10)
 var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
 
 function Signify (init, algo, delimiter) {
-  if (!(this instanceof Signify)) return new Signify(init, algo)
+  if (!(this instanceof Signify)) return new Signify(init, algo, delimiter)
   Transform.call(this)
 
   this._DELIMITER = Buffer.isBuffer(delimiter) ? delimiter : BUF419
-  this._DELIMITER_HEAD = this._DELIMITER[x00]
-  this._stash = ZBUF0
   this._next = seed(init, algo)
   this._next(x1000) // drop4096
 }
@@ -36,13 +36,10 @@ Signify.prototype._transform = function transform (chunk, _, next) {
   next()
 }
 
-function Verify (init, algo, delimiter) {
+function Verify (init, algo) {
   if (!(this instanceof Verify)) return new Verify(init, algo)
   Transform.call(this)
 
-  this._DELIMITER = Buffer.isBuffer(delimiter) ? delimiter : BUF419
-  this._DELIMITER_HEAD = this._DELIMITER[x00]
-  this._stash = ZBUF0
   this._await = ZBUF16
   this._next = seed(init, algo)
   this._next(x1000) // drop4096
@@ -58,7 +55,7 @@ Verify._same = function (i, n, a, b) {
 }
 
 Verify._slice = function slice (pac) {
-  if (pac.length < x08) return { mac: ZBUF8, ZBUF0 }
+  if (pac.length < x08) return { mac: ZBUF8, msg: ZBUF0 }
 
   var mac = Buffer.alloc(x08)
   var msg = Buffer.alloc(pac.length - x08)
@@ -69,26 +66,10 @@ Verify._slice = function slice (pac) {
   return { mac: mac, msg: msg }
 }
 
-Verify.prototype._transform = function transform (chunk, _, next) {
-  for (var i = x00, head = x00; i < chunk.length; i++) {
-
-    if (chunk[i] === this._DELIMITER_HEAD &&
-        chunk.slice(i, i + this._DELIMITER.length).equals(this._DELIMITER)) {
-
-      var pac = Buffer.concat([ this._stash, chunk.slice(head, i) ])
-      var { mac, msg } = Verify._slice(pac)
-
-      if (this._verify(mac, msg)) this.push(msg)
-      else this.emit('dropping', pac)
-
-      this._stash = ZBUF0
-      head = i + this._DELIMITER.length
-
-    } else if (i === chunk.length - x01) {
-      this._stash = chunk.slice(head, chunk.length)
-    }
-
-  }
+Verify.prototype._transform = function transform (pac, _, next) {
+  var { mac, msg } = Verify._slice(pac)
+  if (this._verify(mac, msg)) this.push(msg)
+  else this.emit('dropping', pac)
   next()
 }
 
@@ -107,17 +88,11 @@ Verify.prototype._verify = function verify (mac, msg) {
   return true
 }
 
-Verify.prototype._final = function final (finish) {
-  if (this._stash.length) {
-    var { mac, msg } = Verify._slice(this._stash)
-    if (this._verify(mac, msg)) this.push(msg)
-    else this.emit('dropping', Buffer.from(this._stash))
-    this._stash = ZBUF0
-  }
-  finish()
+function createVerifyingStream (init, algo, delimiter) {
+  return multipipe(chop(delimiter, false), Verify(init, algo))
 }
 
 module.exports = {
   createSigningStream: Signify,
-  createVerifyingStream: Verify
+  createVerifyingStream: createVerifyingStream
 }

@@ -4,6 +4,8 @@
 
 **SipHash24** sign and verify streams powered by a seedable keystream.
 
+**WIP** **WIP** **WIP** **WIP** **WIP** **WIP** **WIP** **WIP**
+
 ***
 
 ## Get it!
