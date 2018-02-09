@@ -5,6 +5,14 @@ var multipipe = require('multipipe')
 var tape = require('tape')
 var sip = require('./index')
 
+var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
+
+function arrIncludesBuf (arr, buf) {
+  return arr.some(function (item) {
+    return buf.equals(item)
+  })
+}
+
 tape('passes all true positives', function (t) {
 
   var shared = '419'
@@ -38,11 +46,14 @@ tape('passes all true positives', function (t) {
 
 tape('drops true negatives', function (t) {
 
-  var SHIFTING = 'nsa pac'
-  var NSA = Buffer.concat([
+  var NSA_MSG = 'nsa pac'
+
+  var NSA_MAC_MSG = Buffer.concat([
     crypto.randomBytes(8), // bad mac
-    Buffer.from(SHIFTING)
+    Buffer.from(NSA_MSG)
   ])
+
+  var NSA = Buffer.concat([ NSA_MAC_MSG, BUF419 ])
 
   var shared = '419'
   var a = sip.createSigningStream(shared)
@@ -62,8 +73,8 @@ tape('drops true negatives', function (t) {
   }
 
   function onend () {
-    t.false(chunks.includes(SHIFTING), 'nsa rejected')
-    t.true(drops.includes(NSA), 'nsa trashed')
+    t.false(chunks.includes(NSA_MSG), 'nsa rejected')
+    t.true(arrIncludesBuf(drops, NSA_MAC_MSG), 'nsa trashed')
     t.same(chunks, msgs, 'got all ok msgs')
     t.end()
   }
@@ -92,7 +103,6 @@ tape('bidirectional communication', function (t) {
   var client
 
   function onconnection (socket) {
-    console.log('server got a connection...')
 
     var s = sip.createSigningStream(shared)
     var v = sip.createVerifyingStream(shared)
@@ -101,17 +111,11 @@ tape('bidirectional communication', function (t) {
     socket.pipe(v)
 
     msgs.forEach(function (msg) {
-      console.log('writing ' + msg + '...')
       s.write(msg)
-    })
-
-    v.on('dropping', function (chunk) {
-      console.log('server dropping', chunk.toString(), '...')
     })
 
     v.on('data', function (chunk) {
       serverinbox.push(chunk.toString())
-      console.log(serverinbox)
       t.same(clientinbox, msgs, 'client got all msgs')
       t.same(serverinbox, [ 'with joy' ], 'server got all msgs')
       client.destroy()
@@ -122,10 +126,8 @@ tape('bidirectional communication', function (t) {
   }
 
   server.listen(4190, '127.0.0.1', function () {
-    console.log('server listening...')
 
     client = net.connect(4190, '127.0.0.1', function () {
-      console.log('client connected...')
 
       var s = sip.createSigningStream(shared)
       var v = sip.createVerifyingStream(shared)
@@ -133,13 +135,8 @@ tape('bidirectional communication', function (t) {
       s.pipe(client)
       client.pipe(v)
 
-      v.on('dropping', function (chunk) {
-        console.log('client dropping', chunk.toString(), '...')
-      })
-
       v.on('data', function (chunk) {
         clientinbox.push(chunk.toString())
-        console.log(clientinbox)
         if (clientinbox.length === 3) s.write('with joy')
       })
     })

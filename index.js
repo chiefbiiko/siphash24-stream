@@ -54,7 +54,7 @@ Verify._same = function (i, n, a, b) {
   return true
 }
 
-Verify._slice = function slice (pac) {
+Verify._cut = function cut (pac) {
   if (pac.length < x08) return { mac: ZBUF8, msg: ZBUF0 }
 
   var mac = Buffer.alloc(x08)
@@ -67,7 +67,7 @@ Verify._slice = function slice (pac) {
 }
 
 Verify.prototype._transform = function transform (pac, _, next) {
-  var { mac, msg } = Verify._slice(pac)
+  var { mac, msg } = Verify._cut(pac)
   if (this._verify(mac, msg)) this.push(msg)
   else this.emit('dropping', pac)
   next()
@@ -89,7 +89,11 @@ Verify.prototype._verify = function verify (mac, msg) {
 }
 
 function createVerifyingStream (init, algo, delimiter) {
-  return multipipe(chop(delimiter, false), Verify(init, algo))
+  var choppa = chop(delimiter, false)
+  var verify = Verify(init, algo)
+  var multi = multipipe(choppa, verify)
+  verify.on('dropping', multi.emit.bind(multi, 'dropping'))
+  return multi
 }
 
 module.exports = {
