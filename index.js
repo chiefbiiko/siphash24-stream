@@ -21,7 +21,6 @@ function Signify (init, opts) {
   Transform.call(this)
 
   if (!opts) opts = {}
-
   this._DELIMITER = Buffer.isBuffer(opts.delimiter) ? opts.delimiter : BUF419
   this._next = seed(init, opts.algo)
   this._next(x1000) // drop4096
@@ -43,7 +42,6 @@ function Verify (init, opts) {
   Transform.call(this)
 
   if (!opts) opts = {}
-
   this._await = ZBUF16
   this._next = seed(init, opts.algo)
   this._next(x1000) // drop4096
@@ -67,7 +65,10 @@ Verify._cut = function cut (pac) {
   pac.copy(mac, x00, x00, x08)
   pac.copy(msg, x00, x08, pac.length)
 
-  return { mac: mac, msg: msg }
+  return {
+    mac: mac,
+    msg: msg
+  }
 }
 
 Verify.prototype._transform = function transform (pac, _, next) {
@@ -95,14 +96,13 @@ Verify.prototype._verify = function verify (mac, msg) {
 function createVerifyingStream (init, opts) {
   if (!opts) opts = {}
   var choppa = chop(opts.delimiter, false)
-  var verify = Verify(init, opts.algo)
+  var verify = Verify(init, opts)
   var multi = multipipe(choppa, verify)
   verify.on('dropping', multi.emit.bind(multi, 'dropping'))
   return multi
 }
 
 function createSipHash24Streams (init, opts) {
-  if (!opts) opts = {}
   return {
     sign: Signify(init, opts),
     verify: createVerifyingStream(init, opts)
