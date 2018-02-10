@@ -59,15 +59,26 @@ alice.end('and buy uzis')
 
 ## API
 
-### `var sign = sip.createSigningStream(init[, algo][, delimiter])`
+### `var sign = sip.createSigningStream(init[, opts])`
 
-Create a transform stream that signs all its throughput with a SipHash24 mac. `init` is the seed for a random byte generator used as key stream. `algo` indicates the algorithm to use for the internal random number generator, defaults to `'alea'`. Check out  [`seedrandom`](https://github.com/davidbau/seedrandom#other-fast-prng-algorithms) for a list of supported algorithms. `delimiter` is the message delimiter, must be a buffer, defaults to: `00 04 01 09 04 01 09 00`.
+Create a transform stream that signs all its throughput with a SipHash24 mac. `init` is the seed for a random byte generator used as key stream.
 
-### `var verify = sip.createVerifyingStream(init[, algo][, delimiter])`
+Options default to:
+
+``` js
+{
+  algo: 'alea',
+  delimiter: Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
+}
+```
+
+`opts.algo` indicates the algorithm to use for the internal random number generator. Check out  [`seedrandom`](https://github.com/davidbau/seedrandom#other-fast-prng-algorithms) for a list of supported algorithms. `opts.delimiter` is the message delimiter, must be a buffer.
+
+### `var verify = sip.createVerifyingStream(init[, opts])`
 
 Create a transform stream that verifies all its throughput against a SipHash24 mac. Bad chunks are rejected and not passed on, not pushed any further, but emitted with the `dropping` event.
 
-### `var { sign, verify } = sip.createSipHash24Streams(init[, algo][, delimiter])`
+### `var { sign, verify } = sip.createSipHash24Streams(init[, opts])`
 
 Create a SipHash24 *sign* and *verify* stream duplet.
 

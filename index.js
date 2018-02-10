@@ -16,12 +16,14 @@ var ZBUF8 = Buffer.alloc(x08)
 var ZBUF16 = Buffer.alloc(x10)
 var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
 
-function Signify (init, algo, delimiter) {
-  if (!(this instanceof Signify)) return new Signify(init, algo, delimiter)
+function Signify (init, opts) {
+  if (!(this instanceof Signify)) return new Signify(init, opts)
   Transform.call(this)
 
-  this._DELIMITER = Buffer.isBuffer(delimiter) ? delimiter : BUF419
-  this._next = seed(init, algo)
+  if (!opts) opts = {}
+
+  this._DELIMITER = Buffer.isBuffer(opts.delimiter) ? opts.delimiter : BUF419
+  this._next = seed(init, opts.algo)
   this._next(x1000) // drop4096
 }
 
@@ -36,12 +38,14 @@ Signify.prototype._transform = function transform (chunk, _, next) {
   next()
 }
 
-function Verify (init, algo) {
-  if (!(this instanceof Verify)) return new Verify(init, algo)
+function Verify (init, opts) {
+  if (!(this instanceof Verify)) return new Verify(init, opts)
   Transform.call(this)
 
+  if (!opts) opts = {}
+
   this._await = ZBUF16
-  this._next = seed(init, algo)
+  this._next = seed(init, opts.algo)
   this._next(x1000) // drop4096
 }
 
@@ -88,18 +92,20 @@ Verify.prototype._verify = function verify (mac, msg) {
   return true
 }
 
-function createVerifyingStream (init, algo, delimiter) {
-  var choppa = chop(delimiter, false)
-  var verify = Verify(init, algo)
+function createVerifyingStream (init, opts) {
+  if (!opts) opts = {}
+  var choppa = chop(opts.delimiter, false)
+  var verify = Verify(init, opts.algo)
   var multi = multipipe(choppa, verify)
   verify.on('dropping', multi.emit.bind(multi, 'dropping'))
   return multi
 }
 
-function createSipHash24Streams (init, algo, delimiter) {
+function createSipHash24Streams (init, opts) {
+  if (!opts) opts = {}
   return {
-    sign: Signify(init, algo, delimiter),
-    verify: createVerifyingStream(init, algo, delimiter)
+    sign: Signify(init, opts),
+    verify: createVerifyingStream(init, opts)
   }
 }
 
