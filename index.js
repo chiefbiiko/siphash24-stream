@@ -3,7 +3,7 @@ var inherits = require('util').inherits
 var multipipe = require('multipipe')
 var siphash24 = require('siphash24')
 var seed = require('seed-bytes')
-var chop = require('./../chop-delimited-stream')
+var chop = require('chop-delimited-stream')
 
 var x00 = 0
 var x01 = 1
@@ -96,7 +96,15 @@ function createVerifyingStream (init, algo, delimiter) {
   return multi
 }
 
+function createSipHash24Streams (init, algo, delimiter) {
+  return {
+    sign: Signify(init, algo, delimiter),
+    verify: createVerifyingStream(init, algo, delimiter)
+  }
+}
+
 module.exports = {
   createSigningStream: Signify,
-  createVerifyingStream: createVerifyingStream
+  createVerifyingStream: createVerifyingStream,
+  createSipHash24Streams: createSipHash24Streams
 }

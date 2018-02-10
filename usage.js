@@ -11,8 +11,8 @@ var NSA = Buffer.concat([
 ])
 
 var shared = '419'
-var alice = sip.createSigningStream(shared)
-var bob = sip.createVerifyingStream(shared)
+var alice = sip.createSigningStream(shared) // alice signs
+var bob = sip.createVerifyingStream(shared) // bob verifies
 var thru = passthru()
 
 function ondata (msg, chunk) {
@@ -30,6 +30,5 @@ bob.on('data', ondata.bind(null, 'bob ok:'))
 bob.on('dropping', ondropping.bind(null, 'bob dropping:'))
 
 alice.write('push all dirty money overseas')
-thru.write(NSA)
-alice.write('and buy uzis')
-bob.write('ok cool')
+thru.write(NSA) // being intercepted
+alice.end('and buy uzis')
