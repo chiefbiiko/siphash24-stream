@@ -20,35 +20,32 @@ Create both *signing* and *verifying* streams by supplying a variable-length sym
 
 ``` js
 var crypto = require('crypto')
-var passthru = require('stream').PassThrough
-var sip = require('siphash24-stream')
+var stream = require('stream')
+var sip = require('./index')
 
-var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
+var DELIMITER = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
-var NSA = Buffer.concat([
-  crypto.randomBytes(8), // bad mac
-  Buffer.from('nsa pac'),
-  BUF419
+var NSA = Buffer.concat([ // pac
+  crypto.randomBytes(8),  // bad mac
+  Buffer.from('nsa pac'), // msg
+  DELIMITER
 ])
 
 var shared = '419'
-var alice = sip.createSigningStream(shared) // alice signs
-var bob = sip.createVerifyingStream(shared) // bob verifies
-var thru = passthru()
+var opts = { algo: 'alea', delimiter: DELIMITER } // default options
+var alice = sip.createSigningStream(shared, opts) // alice signs
+var bob = sip.createVerifyingStream(shared, opts) // bob verifies
+var thru = new stream.PassThrough()
 
-function ondata (msg, chunk) {
-  console.log(msg, chunk.toString())
-}
-
-function ondropping (msg, chunk) {
+function onpac (msg, chunk) {
   console.log(msg, chunk.toString())
 }
 
 alice.pipe(thru).pipe(bob)
 
-thru.on('data', ondata.bind(null, 'bob input:'))
-bob.on('data', ondata.bind(null, 'bob ok:'))
-bob.on('dropping', ondropping.bind(null, 'bob dropping:'))
+thru.on('data', onpac.bind(null, 'bob input:'))
+bob.on('data', onpac.bind(null, 'bob ok:'))
+bob.on('dropping', onpac.bind(null, 'bob dropping:'))
 
 alice.write('push all dirty money overseas')
 thru.write(NSA) // being intercepted
