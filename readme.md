@@ -21,7 +21,7 @@ Create both *signing* and *verifying* streams by supplying a variable-length sym
 ``` js
 var crypto = require('crypto')
 var stream = require('stream')
-var sip = require('./index')
+var sip = require('siphash24-stream')
 
 var DELIMITER = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
@@ -65,7 +65,7 @@ Options default to:
 ``` js
 {
   algo: 'alea',
-  delimiter: Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
+  delimiter: Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 }
 ```
 
