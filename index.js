@@ -83,7 +83,7 @@ Verify.prototype._verify = function verify (mac, msg) {
   var key = waiting ? this._await : this._next(x10)
   var sip = siphash24(msg, key) // the truth
 
-  if (!Verify._same(x00, x08, mac, sip)) {
+  if (!Verify._same(0, x08, mac, sip)) {
     this._await = key
     return false
   } else if (waiting) {
