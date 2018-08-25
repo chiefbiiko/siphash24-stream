@@ -18,6 +18,8 @@ npm install --save siphash24-stream
 
 Create both *signing* and *verifying* streams by supplying a variable-length symmetric key that is used for seeding an internal keystream.
 
+Run `node ./usage.js`:
+
 ``` js
 var crypto = require('crypto')
 var stream = require('stream')
@@ -31,17 +33,17 @@ var NSA = Buffer.concat([ // pac
   DELIMITER
 ])
 
-var shared = '419'
+var shared = '419' // shared secret, symmetric key
 var opts = { algo: 'alea', delimiter: DELIMITER } // default options
 var alice = sip.createSigningStream(shared, opts) // alice signs
 var bob = sip.createVerifyingStream(shared, opts) // bob verifies
-var thru = new stream.PassThrough()
+var thru = new stream.PassThrough()               // some sort of socket
 
-function onpac (msg, chunk) {
-  console.log(msg, chunk.toString())
+function onpac (info, chunk) {
+  console.log(info, chunk.toString())
 }
 
-alice.pipe(thru).pipe(bob)
+alice.pipe(thru).pipe(bob) // alice writes, bob reads
 
 thru.on('data', onpac.bind(null, 'bob input:'))
 bob.on('data', onpac.bind(null, 'bob ok:'))
@@ -51,6 +53,8 @@ alice.write('push all dirty money overseas')
 thru.write(NSA) // being intercepted
 alice.end('and buy uzis')
 ```
+
+Note that only legit msg packs pass thru the verifying end, in this case `bob`.
 
 ***
 

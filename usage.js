@@ -16,8 +16,8 @@ var alice = sip.createSigningStream(shared, opts) // alice signs
 var bob = sip.createVerifyingStream(shared, opts) // bob verifies
 var thru = new stream.PassThrough()
 
-function onpac (msg, chunk) {
-  console.log(msg, chunk.toString())
+function onpac (info, chunk) {
+  console.log(info, chunk.toString())
 }
 
 alice.pipe(thru).pipe(bob)

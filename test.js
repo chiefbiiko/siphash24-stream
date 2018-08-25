@@ -110,9 +110,10 @@ tape('bidirectional communication', function (t) {
     s.pipe(socket)
     socket.pipe(v)
 
-    msgs.forEach(function (msg) {
-      s.write(msg)
-    })
+    var i = 0, interval = setInterval(function () {
+      s.write(msgs[i++])
+      if (i === 3) clearInterval(interval)
+    }, 100).unref()
 
     v.on('data', function (chunk) {
       serverinbox.push(chunk.toString())
@@ -126,9 +127,7 @@ tape('bidirectional communication', function (t) {
   }
 
   server.listen(4190, '127.0.0.1', function () {
-
     client = net.connect(4190, '127.0.0.1', function () {
-
       var s = sip.createSigningStream(shared)
       var v = sip.createVerifyingStream(shared)
 

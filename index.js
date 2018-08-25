@@ -5,15 +5,9 @@ var siphash24 = require('siphash24')
 var seed = require('seed-bytes')
 var chop = require('chop-delimited-stream')
 
-var x00 = 0
-var x01 = 1
-var x08 = 8
-var x10 = 16
-var x1000 = 4096
-
-var ZBUF0 = Buffer.alloc(x00)
-var ZBUF8 = Buffer.alloc(x08)
-var ZBUF16 = Buffer.alloc(x10)
+var ZBUF0 = Buffer.alloc(0)
+var ZBUF8 = Buffer.alloc(8)
+var ZBUF16 = Buffer.alloc(16)
 var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
 
 function Signify (init, opts) {
@@ -23,14 +17,14 @@ function Signify (init, opts) {
   if (!opts) opts = {}
   this._DELIMITER = Buffer.isBuffer(opts.delimiter) ? opts.delimiter : BUF419
   this._next = seed(init, opts.algo)
-  this._next(x1000) // drop4096
+  this._next(4096) // drop4096
 }
 
 inherits(Signify, Transform)
 
 Signify.prototype._transform = function transform (chunk, _, next) {
   this.push(Buffer.concat([
-    siphash24(chunk, this._next(x10)),
+    siphash24(chunk, this._next(16)),
     chunk,
     this._DELIMITER
   ]))
@@ -44,31 +38,21 @@ function Verify (init, opts) {
   if (!opts) opts = {}
   this._await = ZBUF16
   this._next = seed(init, opts.algo)
-  this._next(x1000) // drop4096
+  this._next(4096) // drop4096
 }
 
 inherits(Verify, Transform)
 
-Verify._same = function (i, n, a, b) {
-  for (; i < n; i++) {
-    if (a[i] !== b[i]) return false
-  }
-  return true
-}
-
 Verify._cut = function cut (pac) {
-  if (pac.length < x08) return { mac: ZBUF8, msg: ZBUF0 }
+  if (pac.length < 8) return { mac: ZBUF8, msg: ZBUF0 }
 
-  var mac = Buffer.alloc(x08)
-  var msg = Buffer.alloc(pac.length - x08)
+  var mac = Buffer.alloc(8)
+  var msg = Buffer.alloc(pac.length - 8)
 
-  pac.copy(mac, x00, x00, x08)
-  pac.copy(msg, x00, x08, pac.length)
+  pac.copy(mac, 0, 0, 8)
+  pac.copy(msg, 0, 8, pac.length)
 
-  return {
-    mac: mac,
-    msg: msg
-  }
+  return { mac, msg }
 }
 
 Verify.prototype._transform = function transform (pac, _, next) {
@@ -80,10 +64,10 @@ Verify.prototype._transform = function transform (pac, _, next) {
 
 Verify.prototype._verify = function verify (mac, msg) {
   var waiting = !this._await.equals(ZBUF16) // awaiting a valid key?
-  var key = waiting ? this._await : this._next(x10)
+  var key = waiting ? this._await : this._next(16)
   var sip = siphash24(msg, key) // the truth
 
-  if (!Verify._same(0, x08, mac, sip)) {
+  if (!mac.equals(sip)) {
     this._await = key
     return false
   } else if (waiting) {
