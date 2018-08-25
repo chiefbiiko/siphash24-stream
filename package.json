@@ -1,6 +1,6 @@
 {
   "name": "siphash24-stream",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "siphash24 mac signing and verification as streams",
   "main": "index.js",
   "scripts": {
