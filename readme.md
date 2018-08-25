@@ -1,6 +1,6 @@
 # siphash24-stream
 
-[![build status](http://img.shields.io/travis/chiefbiiko/siphash24-stream.svg?style=flat)](http://travis-ci.org/chiefbiiko/siphash24-stream) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chiefbiiko/siphash24-stream?branch=master&svg=true)](https://ci.appveyor.com/project/chiefbiiko/siphash24-stream)
+[![build status](http://img.shields.io/travis/chiefbiiko/siphash24-stream.svg?style=flat)](http://travis-ci.org/chiefbiiko/siphash24-stream) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chiefbiiko/siphash24-stream?branch=master&svg=true)](https://ci.appveyor.com/project/chiefbiiko/siphash24-stream) [![Security Responsible Disclosure](https://img.shields.io/badge/Security-Responsible%20Disclosure-yellow.svg)](./security.md)
 
 **SipHash24** *sign* and *verify* streams powered by [a seedable keystream](https://github.com/chiefbiiko/seed-bytes).
 
