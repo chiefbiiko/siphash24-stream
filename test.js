@@ -3,7 +3,7 @@ var net = require('net')
 var passthru = require('stream').PassThrough
 var multipipe = require('multipipe')
 var tape = require('tape')
-var sip = require('./index')
+var sip = require('./index.js')
 
 var BUF419 = Buffer.from([ 0x00, 0x04, 0x01, 0x09, 0x04, 0x01, 0x09, 0x00 ])
 

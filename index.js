@@ -1,6 +1,6 @@
-var Transform = require('stream').Transform
-var inherits = require('util').inherits
-var timingSafeEqual = require('crypto').timingSafeEqual
+var { Transform } = require('stream')
+var { inherits } = require('util')
+var { timingSafeEqual } = require('crypto')
 var multipipe = require('multipipe')
 var siphash24 = require('siphash24')
 var seed = require('seed-bytes')

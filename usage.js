@@ -1,6 +1,6 @@
 var crypto = require('crypto')
 var stream = require('stream')
-var sip = require('./index')
+var sip = require('./index.js')
 
 var DELIMITER = Buffer.from([ 0, 4, 1, 9, 4, 1, 9, 0 ])
 
