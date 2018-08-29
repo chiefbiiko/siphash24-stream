@@ -1,5 +1,6 @@
 var Transform = require('stream').Transform
 var inherits = require('util').inherits
+var timingSafeEqual = require('crypto').timingSafeEqual
 var multipipe = require('multipipe')
 var siphash24 = require('siphash24')
 var seed = require('seed-bytes')
@@ -63,11 +64,11 @@ Verify.prototype._transform = function transform (pac, _, next) {
 }
 
 Verify.prototype._verify = function verify (mac, msg) {
-  var waiting = !this._await.equals(ZBUF16) // awaiting a valid key?
+  var waiting = !timingSafeEqual(this._await, ZBUF16) // awaiting a valid key?
   var key = waiting ? this._await : this._next(16)
   var sip = siphash24(msg, key) // the truth
 
-  if (!mac.equals(sip)) {
+  if (!timingSafeEqual(mac, sip)) {
     this._await = key
     return false
   } else if (waiting) {
@@ -95,6 +96,6 @@ function createSipHash24Streams (init, opts) {
 
 module.exports = {
   createSigningStream: Signify,
-  createVerifyingStream: createVerifyingStream,
-  createSipHash24Streams: createSipHash24Streams
+  createVerifyingStream,
+  createSipHash24Streams
 }
